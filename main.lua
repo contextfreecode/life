@@ -1,3 +1,3 @@
 function love.load()
-    love.event.quit()
+    -- love.event.quit()
 end
