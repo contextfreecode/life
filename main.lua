@@ -1,5 +1,5 @@
 ---@class life.Game
----@field boids life.Boid[][][]
+---@field boids life.Boid[]
 ---@field reachFraction number
 ---@field reach number
 ---@field sizeX number
@@ -25,7 +25,7 @@ function love.load()
   game = Game.new()
   game.sizeX, game.sizeY = love.graphics.getDimensions()
   game:buildGrid()
-  for _ = 1, 1000 do
+  for _ = 1, 500 do
     game:addBoid()
   end
 end
@@ -83,24 +83,12 @@ function Game:addBoid()
     y = y,
   }
   -- Insert.
-  local binX = math.floor(x / self.reach) + 1
-  local binY = math.floor(y / self.reach) + 1
-  table.insert(self.boids[binX][binY], boid)
+  table.insert(self.boids, boid)
 end
 
 function Game:buildGrid()
   local reach = self.reachFraction * math.max(self.sizeX, self.sizeY)
   self.reach = reach
-  local maxBinX = math.floor((self.sizeX - 1) / reach) + 1
-  local maxBinY = math.floor((self.sizeY - 1) / reach) + 1
-  for _ = 1, maxBinX do
-    ---@type life.Boid[][]
-    local column = {}
-    for _ = 1, maxBinY do
-      table.insert(column, {})
-    end
-    table.insert(self.boids, column)
-  end
 end
 
 ---@param boidToward life.Boid
@@ -128,28 +116,8 @@ function Game:delta(boidToward, boidFrom)
 end
 
 function Game:draw()
-  for _, column in ipairs(self.boids) do
-    for _, cell in ipairs(column) do
-      for _, boid in ipairs(cell) do
-        love.graphics.rectangle("fill", boid.x - 1, boid.y - 1, 3, 3)
-      end
-    end
-  end
-end
-
-function Game:rebin()
-  for binX, column in ipairs(self.boids) do
-    for binY, cell in ipairs(column) do
-      for index, boid in ipairs(cell) do
-        local newBinX = math.floor(boid.x / self.reach) + 1
-        local newBinY = math.floor(boid.y / self.reach) + 1
-        if not (binX == newBinX and binY == newBinY) then
-          table.insert(self.boids[newBinX][newBinY], boid)
-          cell[index] = cell[#cell]
-          table.remove(cell)
-        end
-      end
-    end
+  for _, boid in ipairs(self.boids) do
+    love.graphics.rectangle("fill", boid.x - 1, boid.y - 1, 3, 3)
   end
 end
 
@@ -157,58 +125,47 @@ end
 function Game:update(dt)
   local reach = self.reach
   local speed = reach
-  for binX, column in ipairs(self.boids) do
-    for binY, cell in ipairs(column) do
-      for _, boid in ipairs(cell) do
-        -- Adjust boid values.
-        local x, y = boid.x, boid.y
-        local vx, vy = boid.vx, boid.vy
-        local mdx, mdy = 0.0, 0.0 -- mean delta toward neighbors
-        local msx, msy = 0.0, 0.0 -- mean spread against neighbors
-        local mvx, mvy = 0.0, 0.0 -- mean velocity of neighbors
-        local weight = 0.0
-        local spreadWeight = 0.0
-        for otherBinDx = -1, 1 do
-          local otherBinX = (binX + otherBinDx - 1) % #self.boids + 1
-          local otherColumn = self.boids[otherBinX]
-          for otherBinDy = -1, 1 do
-            local otherBinY = (binY + otherBinDy - 1) % #otherColumn + 1
-            local otherCell = otherColumn[otherBinY]
-            for _, otherBoid in ipairs(otherCell) do
-              local dx, dy = self:delta(otherBoid, boid)
-              local distance = normOf(dx, dy)
-              if distance < reach then
-                local w = 1.0 - distance / reach
-                mdx, mdy = mdx + dx * w, mdy + dy * w
-                mvx, mvy = mvx + otherBoid.vx * w, mvy + otherBoid.vy * w
-                weight = weight + w
-                -- Spread.
-                local sw = math.pow(w, 5.0)
-                msx, msy = msx - dx * sw, msy - dy * sw
-                spreadWeight = spreadWeight + sw
-              end
-            end
-          end
-        end
-        -- Mix together.
-        if weight ~= 0.0 then
-          mdx, mdy = mdx / weight, mdy / weight
-          mvx, mvy = mvx / weight, mvy / weight
-          msx, msy = msx / spreadWeight, msy / spreadWeight
-          local w0, wv, wd, ws = 0.9, 0.1, 0.01, 0.02
-          vx, vy = normalize(
-            w0 * vx + wv * mvx + wd * mdx + ws * msx,
-            w0 * vy + wv * mvy + wd * mdy + ws * msy
-          )
-        end
-        -- Update boid fields from new values.
-        boid.x, boid.y = self:wrap(
-          x + speed * vx * dt,
-          y + speed * vy * dt
-        )
-        boid.vx, boid.vy = vx, vy
+  for _, boid in ipairs(self.boids) do
+    -- Adjust boid values.
+    local x, y = boid.x, boid.y
+    local vx, vy = boid.vx, boid.vy
+    local mdx, mdy = 0.0, 0.0 -- mean delta toward neighbors
+    local msx, msy = 0.0, 0.0 -- mean spread against neighbors
+    local mvx, mvy = 0.0, 0.0 -- mean velocity of neighbors
+    local weight = 0.0
+    local spreadWeight = 0.0
+    for _, otherBoid in ipairs(self.boids) do
+      local dx, dy = self:delta(otherBoid, boid)
+      local distance = normOf(dx, dy)
+      if distance < reach then
+        local w = 1.0 - distance / reach
+        local wdv = math.pow(w, 5.0)
+        mdx, mdy = mdx + dx * wdv, mdy + dy * wdv
+        mvx, mvy = mvx + otherBoid.vx * wdv, mvy + otherBoid.vy * wdv
+        weight = weight + wdv
+        -- Spread.
+        local sw = math.pow(w, 10.0)
+        msx, msy = msx - dx * sw, msy - dy * sw
+        spreadWeight = spreadWeight + sw
       end
     end
+    -- Mix together.
+    if weight ~= 0.0 then
+      mdx, mdy = mdx / weight, mdy / weight
+      mvx, mvy = mvx / weight, mvy / weight
+      msx, msy = msx / spreadWeight, msy / spreadWeight
+      local w0, wv, wd, ws = 5.0, 0.03, 0.01, 0.02
+      vx, vy = normalize(
+        w0 * vx + wv * mvx + wd * mdx + ws * msx,
+        w0 * vy + wv * mvy + wd * mdy + ws * msy
+      )
+    end
+    -- Update boid fields from new values.
+    boid.x, boid.y = self:wrap(
+      x + speed * vx * dt,
+      y + speed * vy * dt
+    )
+    boid.vx, boid.vy = vx, vy
   end
 end
 
