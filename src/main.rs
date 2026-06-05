@@ -3,7 +3,8 @@ use macroquad::prelude::*;
 #[macroquad::main(window_conf)]
 async fn main() {
     loop {
-        next_frame().await
+        next_frame().await;
+        // break
     }
 }
 

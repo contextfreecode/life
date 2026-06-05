@@ -8,18 +8,23 @@ import (
 
 func main() {
 	ebiten.SetFullscreen(true)
-	g := &game{
-		boids: initBoids(),
-	}
+	g := &game{}
+	// TODO Need to wait until we know screen size?
+	g.addBoids(1000)
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }
 
-type game struct{
+type game struct {
+	boids [][]boid
+	reach float64
 	sizeX float64
 	sizeY float64
-	boids []boid
+}
+
+func (g *game) addBoids(count int) {
+	// TODO
 }
 
 func (g *game) Draw(image *ebiten.Image) {
@@ -37,12 +42,9 @@ func (g *game) Update() error {
 	return nil
 }
 
-type boid struct{
-	x float64
-	y float64
-	angle float64
-}
-
-func initBoids() []boid {
-	return nil
+type boid struct {
+	x  float64
+	y  float64
+	vx float64
+	vy float64
 }

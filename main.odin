@@ -1,7 +1,16 @@
+// odin run . -extra-linker-flags="-lGL -ldrm -lEGL -lgbm"
 package main
 
-import "vendor:raylib"
+import rl "vendor:raylib"
 
 main :: proc() {
-    raylib.InitWindow(100, 100, "Hi!")
+    rl.SetTraceLogLevel(.WARNING)
+    rl.InitWindow(0, 0, "Hi!")
+    for !rl.WindowShouldClose() {
+        rl.BeginDrawing()
+        // rl.ClearBackground(rl.Color{})
+        rl.EndDrawing()
+        // break
+    }
+    defer rl.CloseWindow()
 }
