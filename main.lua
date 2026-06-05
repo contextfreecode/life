@@ -18,6 +18,7 @@ local game
 
 function love.load()
   love.window.setMode(0, 0, { fullscreen = true })
+  love.window.setTitle("Boids")
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
@@ -51,9 +52,16 @@ end
 
 ---@param x number
 ---@param y number
+---@return number
+local function normOf(x, y)
+  return math.sqrt(x * x + y * y)
+end
+
+---@param x number
+---@param y number
 ---@return number, number
 local function normalize(x, y)
-  local norm = math.sqrt(x * x + y * y)
+  local norm = normOf(x, y)
   return x / norm, y / norm
 end
 
@@ -95,6 +103,30 @@ function Game:buildGrid()
   end
 end
 
+---@param boidToward life.Boid
+---@param boidFrom life.Boid
+---@return number, number
+function Game:delta(boidToward, boidFrom)
+  -- Gather locals.
+  local x2, y2 = boidToward.x, boidToward.y
+  local x1, y1 = boidFrom.x, boidFrom.y
+  local sizeX, sizeY = self.sizeX, self.sizeY
+  local halfX, halfY = sizeX / 2, sizeY / 2
+  local dx, dy = x2 - x1, y2 - y1
+  -- Wrap delta.
+  if dx < -halfX then
+    dx = dx + sizeX
+  elseif dx > halfX then
+    dx = dx - sizeX
+  end
+  if dy < -halfY then
+    dy = dy + sizeY
+  elseif dy > halfY then
+    dy = dy - sizeY
+  end
+  return dx, dy
+end
+
 function Game:draw()
   for _, column in ipairs(self.boids) do
     for _, cell in ipairs(column) do
@@ -123,25 +155,51 @@ end
 
 ---@param dt number
 function Game:update(dt)
-  local speed = self.reach
+  local reach = self.reach
+  local speed = reach
   for binX, column in ipairs(self.boids) do
     for binY, cell in ipairs(column) do
       for _, boid in ipairs(cell) do
         -- Adjust boid values.
         local x, y = boid.x, boid.y
         local vx, vy = boid.vx, boid.vy
+        local mdx, mdy = 0.0, 0.0 -- mean delta toward neighbors
+        local msx, msy = 0.0, 0.0 -- mean spread against neighbors
+        local mvx, mvy = 0.0, 0.0 -- mean velocity of neighbors
+        local weight = 0.0
+        local spreadWeight = 0.0
         for otherBinDx = -1, 1 do
           local otherBinX = (binX + otherBinDx - 1) % #self.boids + 1
           local otherColumn = self.boids[otherBinX]
           for otherBinDy = -1, 1 do
             local otherBinY = (binY + otherBinDy - 1) % #otherColumn + 1
             local otherCell = otherColumn[otherBinY]
-            for _, otherBoid in ipairs(otherCell)do
-              -- TODO Adjust velocity for avoidance
-              -- TODO Adjust velocity for alignment
-              -- TODO Adjust velocity for centering
+            for _, otherBoid in ipairs(otherCell) do
+              local dx, dy = self:delta(otherBoid, boid)
+              local distance = normOf(dx, dy)
+              if distance < reach then
+                local w = 1.0 - distance / reach
+                mdx, mdy = mdx + dx * w, mdy + dy * w
+                mvx, mvy = mvx + otherBoid.vx * w, mvy + otherBoid.vy * w
+                weight = weight + w
+                -- Spread.
+                local sw = math.pow(w, 5.0)
+                msx, msy = msx - dx * sw, msy - dy * sw
+                spreadWeight = spreadWeight + sw
+              end
             end
           end
+        end
+        -- Mix together.
+        if weight ~= 0.0 then
+          mdx, mdy = mdx / weight, mdy / weight
+          mvx, mvy = mvx / weight, mvy / weight
+          msx, msy = msx / spreadWeight, msy / spreadWeight
+          local w0, wv, wd, ws = 0.9, 0.1, 0.01, 0.02
+          vx, vy = normalize(
+            w0 * vx + wv * mvx + wd * mdx + ws * msx,
+            w0 * vy + wv * mvy + wd * mdy + ws * msy
+          )
         end
         -- Update boid fields from new values.
         boid.x, boid.y = self:wrap(
@@ -159,5 +217,5 @@ end
 ---@return number, number
 function Game:wrap(x, y)
   return math.fmod(x + self.sizeX, self.sizeX),
-    math.fmod(y + self.sizeY, self.sizeY)
+      math.fmod(y + self.sizeY, self.sizeY)
 end
