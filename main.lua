@@ -18,6 +18,8 @@ local game
 
 function love.load()
   love.window.setMode(0, 0, { fullscreen = true })
+  love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
+  love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
   game = Game.new()
   game.sizeX, game.sizeY = love.graphics.getDimensions()
@@ -121,7 +123,7 @@ end
 
 ---@param dt number
 function Game:update(dt)
-  local speed = 30
+  local speed = self.reach
   for binX, column in ipairs(self.boids) do
     for binY, cell in ipairs(column) do
       for _, boid in ipairs(cell) do
@@ -156,5 +158,6 @@ end
 ---@param y number
 ---@return number, number
 function Game:wrap(x, y)
-  return math.fmod(x, self.sizeX), math.fmod(y, self.sizeY)
+  return math.fmod(x + self.sizeX, self.sizeX),
+    math.fmod(y + self.sizeY, self.sizeY)
 end
