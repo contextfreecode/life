@@ -122,13 +122,31 @@ end
 ---@param dt number
 function Game:update(dt)
   local speed = 30
-  for _, column in ipairs(self.boids) do
-    for _, cell in ipairs(column) do
+  for binX, column in ipairs(self.boids) do
+    for binY, cell in ipairs(column) do
       for _, boid in ipairs(cell) do
+        -- Adjust boid values.
+        local x, y = boid.x, boid.y
+        local vx, vy = boid.vx, boid.vy
+        for otherBinDx = -1, 1 do
+          local otherBinX = (binX + otherBinDx - 1) % #self.boids + 1
+          local otherColumn = self.boids[otherBinX]
+          for otherBinDy = -1, 1 do
+            local otherBinY = (binY + otherBinDy - 1) % #otherColumn + 1
+            local otherCell = otherColumn[otherBinY]
+            for _, otherBoid in ipairs(otherCell)do
+              -- TODO Adjust velocity for avoidance
+              -- TODO Adjust velocity for alignment
+              -- TODO Adjust velocity for centering
+            end
+          end
+        end
+        -- Update boid fields from new values.
         boid.x, boid.y = self:wrap(
-          boid.x + speed * boid.vx * dt,
-          boid.y + speed * boid.vy * dt
+          x + speed * vx * dt,
+          y + speed * vy * dt
         )
+        boid.vx, boid.vy = vx, vy
       end
     end
   end
