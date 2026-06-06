@@ -20,11 +20,14 @@ Boid :: struct {
 }
 
 main :: proc() {
+	// Init.
 	rl.SetConfigFlags({.VSYNC_HINT})
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
+	defer rl.CloseWindow()
 	game := game_init(500)
 	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
+	// Loop.
 	for !rl.WindowShouldClose() {
 		// Prep.
 		defer free_all(context.temp_allocator)
@@ -38,7 +41,6 @@ main :: proc() {
 		rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 20, color)
 		// break
 	}
-	defer rl.CloseWindow()
 }
 
 game_init :: proc(boid_count: int) -> Game {
