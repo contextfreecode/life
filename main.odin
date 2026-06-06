@@ -8,10 +8,9 @@ import "core:math/rand"
 import rl "vendor:raylib"
 
 Game :: struct {
-	boids:         [dynamic]Boid,
-	reach:         f32,
-	reach_fraction: f32,
-	size:          [2]f32,
+	boids: [dynamic]Boid,
+	reach: f32,
+	size:  [2]f32,
 }
 
 Boid :: struct {
@@ -43,23 +42,23 @@ main :: proc() {
 	}
 }
 
+// Public by default is constant stress.
 game_init :: proc(boid_count: int) -> Game {
+	reach_fraction := f32(0.1)
 	game := Game {
-		reach_fraction = 0.1,
 		size = {f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())},
 	}
-	game.reach = game.reach_fraction * max(game.size[0], game.size[1])
-	for _ in 0..<boid_count {
+	game.reach = reach_fraction * max(game.size[0], game.size[1])
+	for _ in 0 ..< boid_count {
 		game_add_boid(&game)
 	}
 	return game
 }
 
 game_add_boid :: proc(game: ^Game) {
-	append(&game.boids, Boid{
-		pos = [2]f32{rand.float32(), rand.float32()} * game.size,
-		vel = linalg.normalize([2]f32{rand.float32(), rand.float32()} - 0.5),
-	})
+	pos := [2]f32{rand.float32(), rand.float32()} * game.size
+	vel := linalg.normalize([2]f32{rand.float32(), rand.float32()} - 0.5)
+	append(&game.boids, Boid{pos = pos, vel = vel})
 }
 
 game_draw :: proc(game: ^Game, color: rl.Color) {
@@ -73,11 +72,15 @@ game_update :: proc(game: ^Game, dt: f32) {
 	reach := game.reach
 	speed := reach
 	for &boid in game.boids {
-		vel := boid.vel
-		// TODO Update vel.
-		boid.pos = game_wrap(game^, boid.pos + vel * speed * dt)
-		boid.vel = vel
+		game_update_boid_vel(game^, &boid)
+		boid.pos = game_wrap(game^, boid.pos + boid.vel * speed * dt)
 	}
+}
+
+game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
+	vel := boid.vel
+	// TODO Update vel!
+	boid.vel = vel
 }
 
 game_wrap :: proc(game: Game, pos: [2]f32) -> [2]f32 {
