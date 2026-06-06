@@ -55,6 +55,8 @@ function Game:init(boidCount)
   end
 end
 
+-- Needing to predeclare local functions is some stress.
+
 ---@param x number
 ---@param y number
 ---@return number
@@ -121,51 +123,54 @@ function Game:draw()
   end
 end
 
+---@param boid life.Boid
+local function updateBoidVel(game, boid)
+  local reach = game.reach
+  local x, y = boid.x, boid.y
+  local vx, vy = boid.vx, boid.vy
+  local mdx, mdy = 0.0, 0.0   -- mean delta toward neighbors
+  local msx, msy = 0.0, 0.0   -- mean spread against neighbors
+  local mvx, mvy = 0.0, 0.0   -- mean velocity of neighbors
+  local weight = 0.0
+  local spreadWeight = 0.0
+  for _, otherBoid in ipairs(game.boids) do
+    local dx, dy = game:delta(otherBoid, boid)
+    local distance = normOf(dx, dy)
+    if distance < reach then
+      local w = 1.0 - distance / reach
+      local wdv = math.pow(w, 5.0)
+      mdx, mdy = mdx + dx * wdv, mdy + dy * wdv
+      mvx, mvy = mvx + otherBoid.vx * wdv, mvy + otherBoid.vy * wdv
+      weight = weight + wdv
+      -- Spread.
+      local sw = math.pow(w, 10.0)
+      msx, msy = msx - dx * sw, msy - dy * sw
+      spreadWeight = spreadWeight + sw
+    end
+  end
+  -- Mix together.
+  if weight ~= 0.0 then
+    mdx, mdy = mdx / weight, mdy / weight
+    mvx, mvy = mvx / weight, mvy / weight
+    msx, msy = msx / spreadWeight, msy / spreadWeight
+    local w0, wv, wd, ws = 5.0, 0.03, 0.01, 0.02
+    boid.vx, boid.vy = normalize(
+      w0 * vx + wv * mvx + wd * mdx + ws * msx,
+      w0 * vy + wv * mvy + wd * mdy + ws * msy
+    )
+  end
+end
+
 ---@param dt number
 function Game:update(dt)
   local reach = self.reach
   local speed = reach
   for _, boid in ipairs(self.boids) do
-    -- Adjust boid values.
-    local x, y = boid.x, boid.y
-    local vx, vy = boid.vx, boid.vy
-    local mdx, mdy = 0.0, 0.0 -- mean delta toward neighbors
-    local msx, msy = 0.0, 0.0 -- mean spread against neighbors
-    local mvx, mvy = 0.0, 0.0 -- mean velocity of neighbors
-    local weight = 0.0
-    local spreadWeight = 0.0
-    for _, otherBoid in ipairs(self.boids) do
-      local dx, dy = self:delta(otherBoid, boid)
-      local distance = normOf(dx, dy)
-      if distance < reach then
-        local w = 1.0 - distance / reach
-        local wdv = math.pow(w, 5.0)
-        mdx, mdy = mdx + dx * wdv, mdy + dy * wdv
-        mvx, mvy = mvx + otherBoid.vx * wdv, mvy + otherBoid.vy * wdv
-        weight = weight + wdv
-        -- Spread.
-        local sw = math.pow(w, 10.0)
-        msx, msy = msx - dx * sw, msy - dy * sw
-        spreadWeight = spreadWeight + sw
-      end
-    end
-    -- Mix together.
-    if weight ~= 0.0 then
-      mdx, mdy = mdx / weight, mdy / weight
-      mvx, mvy = mvx / weight, mvy / weight
-      msx, msy = msx / spreadWeight, msy / spreadWeight
-      local w0, wv, wd, ws = 5.0, 0.03, 0.01, 0.02
-      vx, vy = normalize(
-        w0 * vx + wv * mvx + wd * mdx + ws * msx,
-        w0 * vy + wv * mvy + wd * mdy + ws * msy
-      )
-    end
-    -- Update boid fields from new values.
+    updateBoidVel(self, boid)
     boid.x, boid.y = self:wrap(
-      x + speed * vx * dt,
-      y + speed * vy * dt
+      boid.x + speed * boid.vx * dt,
+      boid.y + speed * boid.vy * dt
     )
-    boid.vx, boid.vy = vx, vy
   end
 end
 
