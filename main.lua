@@ -24,10 +24,7 @@ function love.load()
   -- love.event.quit()
   game = Game.new()
   game.sizeX, game.sizeY = love.graphics.getDimensions()
-  game:buildGrid()
-  for _ = 1, 500 do
-    game:addBoid()
-  end
+  game:init(500)
 end
 
 function love.draw()
@@ -48,6 +45,14 @@ function Game.new()
     sizeX = 0,
     sizeY = 0,
   }, Game)
+end
+
+---@param boidCount integer
+function Game:init(boidCount)
+  self.reach = self.reachFraction * math.max(self.sizeX, self.sizeY)
+  for _ = 1, boidCount do
+    game:addBoid()
+  end
 end
 
 ---@param x number
@@ -72,8 +77,8 @@ function Game:addBoid()
     self.sizeY * love.math.random()
   )
   -- Velocity.
-  local vx = 2 * love.math.random() - 1
-  local vy = 2 * love.math.random() - 1
+  local vx = love.math.random() - 0.5
+  local vy = love.math.random() - 0.5
   vx, vy = normalize(vx, vy)
   ---@type life.Boid
   local boid = {
@@ -84,11 +89,6 @@ function Game:addBoid()
   }
   -- Insert.
   table.insert(self.boids, boid)
-end
-
-function Game:buildGrid()
-  local reach = self.reachFraction * math.max(self.sizeX, self.sizeY)
-  self.reach = reach
 end
 
 ---@param boidToward life.Boid
