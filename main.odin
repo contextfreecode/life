@@ -51,7 +51,7 @@ game_init :: proc(boid_count: int) -> Game {
 	size_max := max(size[0], size[1])
 	game := Game {
 		reach = 0.05 * size_max,
-		size = size,
+		size  = size,
 		speed = 0.1 * size_max,
 	}
 	for _ in 0 ..< boid_count {

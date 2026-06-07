@@ -124,9 +124,9 @@ end
 local function updateBoidVel(game, boid)
   local reach = game.reach
   local vx, vy = boid.vx, boid.vy
-  local mdx, mdy = 0.0, 0.0   -- mean delta toward neighbors
-  local msx, msy = 0.0, 0.0   -- mean spread against neighbors
-  local mvx, mvy = 0.0, 0.0   -- mean velocity of neighbors
+  local mdx, mdy = 0.0, 0.0 -- mean delta toward neighbors
+  local msx, msy = 0.0, 0.0 -- mean spread against neighbors
+  local mvx, mvy = 0.0, 0.0 -- mean velocity of neighbors
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do

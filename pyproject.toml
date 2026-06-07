@@ -8,3 +8,9 @@ dependencies = [
     "numpy>=2.4.6",
     "pygame-ce>=2.5.7",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.16",
+    "ty>=0.0.44",
+]
