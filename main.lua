@@ -1,7 +1,7 @@
 ---@class life.Game
 ---@field boids life.Boid[]
----@field reachFraction number
 ---@field reach number
+---@field speed number
 ---@field sizeX number
 ---@field sizeY number
 local Game = {}
@@ -22,9 +22,7 @@ function love.load()
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
-  game = Game.new()
-  game.sizeX, game.sizeY = love.graphics.getDimensions()
-  game:init(500)
+  game = Game.new(550)
 end
 
 function love.draw()
@@ -37,22 +35,21 @@ function love.update(dt)
   game:update(dt)
 end
 
-function Game.new()
-  return setmetatable({
-    boids = {},
-    reachFraction = 0.1,
-    reach = 0,
-    sizeX = 0,
-    sizeY = 0,
-  }, Game)
-end
-
 ---@param boidCount integer
-function Game:init(boidCount)
-  self.reach = self.reachFraction * math.max(self.sizeX, self.sizeY)
+function Game.new(boidCount)
+  local sizeX, sizeY = love.graphics.getDimensions()
+  local size_max = math.max(sizeX, sizeY)
+  local game = setmetatable({
+    boids = {},
+    reach = 0.05 * size_max,
+    sizeX = sizeX,
+    sizeY = sizeY,
+    speed = 0.1 * size_max,
+  }, Game)
   for _ = 1, boidCount do
     game:addBoid()
   end
+  return game
 end
 
 -- Needing to predeclare local functions is some stress.
@@ -152,7 +149,7 @@ local function updateBoidVel(game, boid)
     mdx, mdy = mdx / weight, mdy / weight
     mvx, mvy = mvx / weight, mvy / weight
     msx, msy = msx / spreadWeight, msy / spreadWeight
-    local w0, wv, wd, ws = 5.0, 0.03, 0.01, 0.02
+    local w0, wv, wd, ws = 1.0, 0.03, 0.01, 0.02
     boid.vx, boid.vy = normalize(
       w0 * vx + wv * mvx + wd * mdx + ws * msx,
       w0 * vy + wv * mvy + wd * mdy + ws * msy
@@ -162,8 +159,7 @@ end
 
 ---@param dt number
 function Game:update(dt)
-  local reach = self.reach
-  local speed = reach
+  local speed = self.speed
   for _, boid in ipairs(self.boids) do
     updateBoidVel(self, boid)
     boid.x, boid.y = self:wrap(

@@ -12,6 +12,7 @@ Game :: struct {
 	boids: [dynamic]Boid,
 	reach: f32,
 	size:  [2]f32,
+	speed: f32,
 }
 
 Boid :: struct {
@@ -25,7 +26,8 @@ main :: proc() {
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
 	defer rl.CloseWindow()
-	game := game_init(500) // 1100
+	game := game_init(650)
+	// game := game_init(1150) // For -o:speed mode.
 	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
 	// Loop.
 	for !rl.WindowShouldClose() {
@@ -45,11 +47,13 @@ main :: proc() {
 
 // Public by default is constant stress.
 game_init :: proc(boid_count: int) -> Game {
-	reach_fraction := f32(0.1)
+	size := [2]f32{f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())}
+	size_max := max(size[0], size[1])
 	game := Game {
-		size = {f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())},
+		reach = 0.05 * size_max,
+		size = size,
+		speed = 0.1 * size_max,
 	}
-	game.reach = reach_fraction * max(game.size[0], game.size[1])
 	for _ in 0 ..< boid_count {
 		game_add_boid(&game)
 	}
@@ -89,8 +93,7 @@ game_draw :: proc(game: ^Game, color: rl.Color) {
 }
 
 game_update :: proc(game: ^Game, dt: f32) {
-	reach := game.reach
-	speed := reach
+	speed := game.speed
 	for &boid in game.boids {
 		game_update_boid_vel(game^, &boid)
 		boid.pos = game_wrap(game^, boid.pos + boid.vel * speed * dt)
@@ -126,7 +129,7 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 		mean_spread /= spread_weight
 		vel := boid.vel
 		boid.vel = linalg.normalize(
-			vel * 5 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
+			vel * 1 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
 		)
 	}
 }
