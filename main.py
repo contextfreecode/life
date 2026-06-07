@@ -89,8 +89,8 @@ class Game:
     def update_boid_vel(self, boid: Boid) -> None:
         reach = self.reach
         mean_delta = pg.Vector2()
-        mean_spread = pg.Vector2()
         mean_trend = pg.Vector2()
+        mean_spread = pg.Vector2()
         weight = 0.0
         spread_weight = 0.0
         for other_boid in self.boids:

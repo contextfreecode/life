@@ -103,8 +103,8 @@ game_update :: proc(game: ^Game, dt: f32) {
 game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 	reach := game.reach
 	mean_delta: [2]f32
-	mean_spread: [2]f32
 	mean_trend: [2]f32
+	mean_spread: [2]f32
 	weight: f32
 	spread_weight: f32
 	for other_boid in game.boids {
@@ -129,7 +129,7 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 		mean_spread /= spread_weight
 		// TODO Adjust impact by update time duration.
 		boid.vel = linalg.normalize(
-			boid.vel * 1 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
+			boid.vel * 1 + mean_delta * 0.01 + mean_trend * 0.03 + mean_spread * 0.02,
 		)
 	}
 }
