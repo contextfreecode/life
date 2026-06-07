@@ -127,9 +127,9 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 		mean_delta /= weight
 		mean_trend /= weight
 		mean_spread /= spread_weight
-		vel := boid.vel
+		// TODO Adjust impact by update time duration.
 		boid.vel = linalg.normalize(
-			vel * 1 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
+			boid.vel * 1 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
 		)
 	}
 }

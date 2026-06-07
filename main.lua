@@ -149,6 +149,7 @@ local function updateBoidVel(game, boid)
     mdx, mdy = mdx / weight, mdy / weight
     mvx, mvy = mvx / weight, mvy / weight
     msx, msy = msx / spreadWeight, msy / spreadWeight
+    -- TODO Adjust impact by update time duration.
     local w0, wv, wd, ws = 1.0, 0.03, 0.01, 0.02
     boid.vx, boid.vy = normalize(
       w0 * vx + wv * mvx + wd * mdx + ws * msx,
