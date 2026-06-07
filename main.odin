@@ -22,7 +22,7 @@ Boid :: struct {
 
 main :: proc() {
 	// Init.
-	rl.SetConfigFlags({.VSYNC_HINT})
+	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_UNDECORATED})
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
 	defer rl.CloseWindow()
