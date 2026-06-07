@@ -21,7 +21,7 @@ function love.load()
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
-  game = Game.new(450)
+  game = Game.new(400) -- Was more like 550 with separate x & y.
 end
 
 function love.draw()
@@ -36,7 +36,7 @@ end
 
 ---@param boidCount integer
 function Game.new(boidCount)
-  local size = {love.graphics.getDimensions()}
+  local size = { love.graphics.getDimensions() }
   local size_max = math.max(size[1], size[2])
   local game = setmetatable({
     boids = {},
@@ -95,9 +95,9 @@ end
 local function updateBoidVel(game, boid)
   local reach = game.reach
   local vel = boid.vel
-  local mean_delta = {0.0, 0.0}
-  local mean_trend = {0.0, 0.0}
-  local mean_spread = {0.0, 0.0}
+  local mean_delta = { 0.0, 0.0 }
+  local mean_trend = { 0.0, 0.0 }
+  local mean_spread = { 0.0, 0.0 }
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
