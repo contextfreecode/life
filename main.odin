@@ -3,6 +3,7 @@ package main
 
 import "core:c"
 import "core:fmt"
+import "core:math"
 import "core:math/linalg"
 import "core:math/rand"
 import rl "vendor:raylib"
@@ -98,7 +99,6 @@ game_update :: proc(game: ^Game, dt: f32) {
 
 game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 	reach := game.reach
-	vel := boid.vel
 	mean_delta: [2]f32
 	mean_spread: [2]f32
 	mean_trend: [2]f32
@@ -108,14 +108,27 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 		delta := game_delta(game, boid.pos, other_boid.pos)
 		distance := linalg.length(delta)
 		if distance < reach {
-			// TODO
+			w := 1 - distance / reach
+			wdt := math.pow(w, 5)
+			mean_delta += delta * wdt
+			mean_trend += other_boid.vel * wdt
+			weight += wdt
+			// Spread.
+			ws := math.pow(w, 10)
+			mean_spread -= delta * ws
+			spread_weight += ws
 		}
 	}
 	// Mix together.
 	if weight != 0 {
-		// TODO
+		mean_delta /= weight
+		mean_trend /= weight
+		mean_spread /= spread_weight
+		vel := boid.vel
+		boid.vel = linalg.normalize(
+			vel * 5 + mean_trend * 0.03 + mean_delta * 0.01 + mean_spread * 0.02,
+		)
 	}
-	boid.vel = vel
 }
 
 game_wrap :: proc(game: Game, pos: [2]f32) -> [2]f32 {
