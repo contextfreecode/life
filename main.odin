@@ -24,7 +24,7 @@ main :: proc() {
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
 	defer rl.CloseWindow()
-	game := game_init(500)
+	game := game_init(500) // 1100
 	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
 	// Loop.
 	for !rl.WindowShouldClose() {
@@ -61,6 +61,25 @@ game_add_boid :: proc(game: ^Game) {
 	append(&game.boids, Boid{pos = pos, vel = vel})
 }
 
+game_delta :: proc(game: Game, from: [2]f32, toward: [2]f32) -> [2]f32 {
+	size := game.size
+	half := size / 2
+	delta := toward - from
+	// Wrap delta.
+	// TODO Some clever vector version of this?
+	if delta[0] < -half[0] {
+		delta[0] += size[0]
+	} else if delta[0] > half[0] {
+		delta[0] -= size[0]
+	}
+	if delta[1] < -half[1] {
+		delta[1] += size[1]
+	} else if delta[1] > half[1] {
+		delta[1] -= size[1]
+	}
+	return delta
+}
+
 game_draw :: proc(game: ^Game, color: rl.Color) {
 	for boid in game.boids {
 		x, y := c.int(boid.pos[0] - 1), c.int(boid.pos[1] - 1)
@@ -78,8 +97,24 @@ game_update :: proc(game: ^Game, dt: f32) {
 }
 
 game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
+	reach := game.reach
 	vel := boid.vel
-	// TODO Update vel!
+	mean_delta: [2]f32
+	mean_spread: [2]f32
+	mean_trend: [2]f32
+	weight: f32
+	spread_weight: f32
+	for other_boid in game.boids {
+		delta := game_delta(game, boid.pos, other_boid.pos)
+		distance := linalg.length(delta)
+		if distance < reach {
+			// TODO
+		}
+	}
+	// Mix together.
+	if weight != 0 {
+		// TODO
+	}
 	boid.vel = vel
 }
 

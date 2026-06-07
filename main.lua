@@ -126,7 +126,6 @@ end
 ---@param boid life.Boid
 local function updateBoidVel(game, boid)
   local reach = game.reach
-  local x, y = boid.x, boid.y
   local vx, vy = boid.vx, boid.vy
   local mdx, mdy = 0.0, 0.0   -- mean delta toward neighbors
   local msx, msy = 0.0, 0.0   -- mean spread against neighbors
