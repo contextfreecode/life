@@ -2,21 +2,6 @@ local mod = {}
 
 ---@alias v.Vec2 [number, number]
 
----@type v.Vec2
-mod.temp1 = {0.0, 0.0}
-
----@type v.Vec2
-mod.temp2 = {0.0, 0.0}
-
----@type v.Vec2
-mod.temp3 = {0.0, 0.0}
-
----@type v.Vec2
-mod.temp4 = {0.0, 0.0}
-
----@type v.Vec2
-mod.temp5 = {0.0, 0.0}
-
 ---@param a v.Vec2
 ---@param b v.Vec2
 ---@param target? v.Vec2

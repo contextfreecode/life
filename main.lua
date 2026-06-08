@@ -95,13 +95,13 @@ end
 ---@param boid life.Boid
 local function updateBoidVel(game, boid)
   local reach = game.reach
-  local mean_delta = v.temp1 -- Alias temp1.
-  local mean_trend = v.temp2 -- Alias temp2.
-  local mean_spread = v.temp3 -- Alias temp3.
+  local mean_delta = v.zero()
+  local mean_trend = v.zero()
+  local mean_spread = v.zero()
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
-    local delta = game:delta(otherBoid.pos, boid.pos, v.temp4) -- Alias temp4.
+    local delta = game:delta(otherBoid.pos, boid.pos)
     local distance = v.normOf(delta)
     if distance < reach then
       local w = 1.0 - distance / reach
@@ -117,7 +117,7 @@ local function updateBoidVel(game, boid)
   end
   -- Mix together.
   if weight ~= 0.0 then
-    local vel = v.mulScalar(boid.vel, 1.0, v.temp5) -- Alias temp5.
+    local vel = v.mulScalar(boid.vel, 1.0)
     -- TODO Adjust impact by update time duration.
     v.mulScalar(mean_delta, 0.01 / weight, mean_delta)
     v.mulScalar(mean_trend, 0.03 / weight, mean_trend)
@@ -132,7 +132,7 @@ function Game:update(dt)
   local speed = self.speed
   for _, boid in ipairs(self.boids) do
     updateBoidVel(self, boid)
-    v.add(boid.pos, v.mulScalar(boid.vel, speed * dt, v.temp5), boid.pos)
+    v.add(boid.pos, v.mulScalar(boid.vel, speed * dt), boid.pos)
     self:wrap(boid.pos)
   end
 end
