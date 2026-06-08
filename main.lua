@@ -1,16 +1,16 @@
-local v = require("v")
+local v2 = require("v2")
 
 ---@class life.Game
 ---@field boids life.Boid[]
 ---@field reach number
 ---@field speed number
----@field size v.Vec2
+---@field size v2.Vec2
 local Game = {}
 Game.__index = Game
 
 ---@class life.Boid
----@field vel v.Vec2
----@field pos v.Vec2
+---@field vel v2.Vec2
+---@field pos v2.Vec2
 
 ---@type life.Game
 local game
@@ -52,10 +52,10 @@ end
 
 function Game:addBoid()
   -- Location.
-  local pos = v.mul({ love.math.random(), love.math.random() }, self.size)
+  local pos = v2.mul({ love.math.random(), love.math.random() }, self.size)
   -- Velocity.
-  local vel = v.addScalar({ love.math.random(), love.math.random() }, -0.5)
-  vel = v.normalize(vel)
+  local vel = v2.addScalar({ love.math.random(), love.math.random() }, -0.5)
+  vel = v2.normalize(vel)
   ---@type life.Boid
   local boid = { pos = pos, vel = vel }
   table.insert(self.boids, boid)
@@ -63,13 +63,13 @@ end
 
 ---@param boidToward life.Boid
 ---@param boidFrom life.Boid
----@param target? v.Vec2
----@return v.Vec2
+---@param target? v2.Vec2
+---@return v2.Vec2
 function Game:delta(boidToward, boidFrom, target)
   -- Gather locals.
   local size = self.size
-  local half = v.mulScalar(size, 0.5)
-  local delta = v.add(boidToward, v.mulScalar(boidFrom, -1.0), target)
+  local half = v2.mulScalar(size, 0.5)
+  local delta = v2.add(boidToward, v2.mulScalar(boidFrom, -1.0), target)
   -- Wrap delta.
   if delta[1] < -half[1] then
     delta[1] = delta[1] + size[1]
@@ -86,7 +86,7 @@ end
 
 function Game:draw()
   for _, boid in ipairs(self.boids) do
-    local pos = v.addScalar(boid.pos, -1.0)
+    local pos = v2.addScalar(boid.pos, -1.0)
     love.graphics.rectangle("fill", pos[1], pos[2], 3, 3)
   end
 end
@@ -95,36 +95,35 @@ end
 ---@param boid life.Boid
 local function updateBoidVel(game, boid)
   local reach = game.reach
-  local delta = v.zero()
-  local mean_delta = v.zero()
-  local mean_trend = v.zero()
-  local mean_spread = v.zero()
+  local delta = v2.zero()
+  local meanDelta = v2.zero()
+  local meanTrend = v2.zero()
+  local meanSpread = v2.zero()
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
     game:delta(otherBoid.pos, boid.pos, delta)
-    local distance = v.normOf(delta)
+    local distance = v2.normOf(delta)
     if distance < reach then
       local w = 1.0 - distance / reach
       local wdv = math.pow(w, 5.0)
-      v.add(mean_delta, v.mulScalar(delta, wdv), mean_delta)
-      v.add(mean_trend, v.mulScalar(otherBoid.vel, wdv), mean_trend)
+      v2.add(meanDelta, v2.mulScalar(delta, wdv), meanDelta)
+      v2.add(meanTrend, v2.mulScalar(otherBoid.vel, wdv), meanTrend)
       weight = weight + wdv
       -- Spread.
       local ws = math.pow(w, 10.0)
-      v.add(mean_spread, v.mulScalar(delta, -ws), mean_spread)
+      v2.add(meanSpread, v2.mulScalar(delta, -ws), meanSpread)
       spreadWeight = spreadWeight + ws
     end
   end
   -- Mix together.
   if weight ~= 0.0 then
-    local vel = v.mulScalar(boid.vel, 1.0)
+    local vel = v2.mulScalar(boid.vel, 1.0, boid.vel)
     -- TODO Adjust impact by update time duration.
-    v.mulScalar(mean_delta, 0.01 / weight, mean_delta)
-    v.mulScalar(mean_trend, 0.03 / weight, mean_trend)
-    v.mulScalar(mean_spread, 0.02 / spreadWeight, mean_spread)
-    v.add(v.add(v.add(vel, mean_spread, vel), mean_trend, vel), mean_delta, vel)
-    v.normalize(vel, boid.vel)
+    v2.add(vel, v2.mulScalar(meanDelta, 0.01 / weight, meanDelta), vel)
+    v2.add(vel, v2.mulScalar(meanTrend, 0.03 / weight, meanTrend), vel)
+    v2.add(vel, v2.mulScalar(meanSpread, 0.02 / spreadWeight, meanSpread), vel)
+    v2.normalize(vel, vel)
   end
 end
 
@@ -133,13 +132,13 @@ function Game:update(dt)
   local speed = self.speed
   for _, boid in ipairs(self.boids) do
     updateBoidVel(self, boid)
-    v.add(boid.pos, v.mulScalar(boid.vel, speed * dt), boid.pos)
+    v2.add(boid.pos, v2.mulScalar(boid.vel, speed * dt), boid.pos)
     self:wrap(boid.pos)
   end
 end
 
----@param pos v.Vec2 Modified in place.
----@return v.Vec2
+---@param pos v2.Vec2 Modified in place.
+---@return v2.Vec2
 function Game:wrap(pos)
-  return v.fmod(v.add(pos, self.size, pos), self.size, pos)
+  return v2.fmod(v2.add(pos, self.size, pos), self.size, pos)
 end
