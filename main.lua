@@ -21,7 +21,7 @@ function love.load()
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
-  game = Game.new(400) -- Was more like 550 with separate x & y.
+  game = Game.new(450) -- Was more like 550 with separate x & y.
 end
 
 function love.draw()
@@ -95,13 +95,14 @@ end
 ---@param boid life.Boid
 local function updateBoidVel(game, boid)
   local reach = game.reach
+  local delta = v.zero()
   local mean_delta = v.zero()
   local mean_trend = v.zero()
   local mean_spread = v.zero()
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
-    local delta = game:delta(otherBoid.pos, boid.pos)
+    game:delta(otherBoid.pos, boid.pos, delta)
     local distance = v.normOf(delta)
     if distance < reach then
       local w = 1.0 - distance / reach
