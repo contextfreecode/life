@@ -9,14 +9,13 @@ function mod.add(a, b)
   return { a[1] + b[1], a[2] + b[2] }
 end
 
----@param result v.Vec2
 ---@param a v.Vec2
 ---@param b v.Vec2
 ---@return v.Vec2
-function mod.addInto(result, a, b)
-  result[1] = a[1] + b[1]
-  result[2] = a[2] + b[2]
-  return result
+function mod.addInto(a, b)
+  a[1] = a[1] + b[1]
+  a[2] = a[2] + b[2]
+  return a
 end
 
 ---@param vec v.Vec2
@@ -40,14 +39,13 @@ function mod.mulScalar(vec, scalar)
   return { vec[1] * scalar, vec[2] * scalar }
 end
 
----@param result v.Vec2
 ---@param vec v.Vec2
 ---@param scalar number
 ---@return v.Vec2
-function mod.mulScalarInto(result, vec, scalar)
-  result[1] = vec[1] * scalar
-  result[2] = vec[2] * scalar
-  return result
+function mod.mulScalarInto(vec, scalar)
+  vec[1] = vec[1] * scalar
+  vec[2] = vec[2] * scalar
+  return vec
 end
 
 ---@param vec v.Vec2

@@ -106,12 +106,12 @@ local function updateBoidVel(game, boid)
     if distance < reach then
       local w = 1.0 - distance / reach
       local wdv = math.pow(w, 5.0)
-      v.addInto(mean_delta, mean_delta, v.mulScalar(delta, wdv))
-      v.addInto(mean_trend, mean_trend, v.mulScalar(otherBoid.vel, wdv))
+      v.addInto(mean_delta, v.mulScalar(delta, wdv))
+      v.addInto(mean_trend, v.mulScalar(otherBoid.vel, wdv))
       weight = weight + wdv
       -- Spread.
       local ws = math.pow(w, 10.0)
-      v.addInto(mean_spread, mean_spread, v.mulScalar(delta, -ws))
+      v.addInto(mean_spread, v.mulScalar(delta, -ws))
       spreadWeight = spreadWeight + ws
     end
   end
@@ -119,12 +119,10 @@ local function updateBoidVel(game, boid)
   if weight ~= 0.0 then
     vel = v.mulScalar(boid.vel, 1.0)
     -- TODO Adjust impact by update time duration.
-    v.mulScalarInto(mean_delta, mean_delta, 0.01 / weight)
-    v.mulScalarInto(mean_trend, mean_trend, 0.03 / weight)
-    v.mulScalarInto(mean_spread, mean_spread, 0.02 / spreadWeight)
-    v.addInto(vel, vel, mean_delta)
-    v.addInto(vel, vel, mean_trend)
-    v.addInto(vel, vel, mean_spread)
+    v.mulScalarInto(mean_delta, 0.01 / weight)
+    v.mulScalarInto(mean_trend, 0.03 / weight)
+    v.mulScalarInto(mean_spread, 0.02 / spreadWeight)
+    v.addInto(v.addInto(v.addInto(vel, mean_spread), mean_trend), mean_delta)
     boid.vel = v.normalize(vel)
   end
 end
