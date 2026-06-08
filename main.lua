@@ -52,10 +52,10 @@ end
 
 function Game:addBoid()
   -- Location.
-  local pos = v2.mul({ love.math.random(), love.math.random() }, self.size)
+  local pos = v2.mul(v2.init(love.math.random), self.size)
   -- Velocity.
-  local vel = v2.addScalar({ love.math.random(), love.math.random() }, -0.5)
-  vel = v2.normalize(vel)
+  local vel = v2.addNum(v2.init(love.math.random), -0.5)
+  v2.normalize(vel, vel)
   ---@type life.Boid
   local boid = { pos = pos, vel = vel }
   table.insert(self.boids, boid)
@@ -68,8 +68,8 @@ end
 function Game:delta(boidToward, boidFrom, target)
   -- Gather locals.
   local size = self.size
-  local half = v2.mulScalar(size, 0.5)
-  local delta = v2.add(boidToward, v2.mulScalar(boidFrom, -1.0), target)
+  local half = v2.mulNum(size, 0.5)
+  local delta = v2.add(boidToward, v2.mulNum(boidFrom, -1.0), target)
   -- Wrap delta.
   if delta[1] < -half[1] then
     delta[1] = delta[1] + size[1]
@@ -86,7 +86,7 @@ end
 
 function Game:draw()
   for _, boid in ipairs(self.boids) do
-    local pos = v2.addScalar(boid.pos, -1.0)
+    local pos = v2.addNum(boid.pos, -1.0)
     love.graphics.rectangle("fill", pos[1], pos[2], 3, 3)
   end
 end
@@ -103,26 +103,26 @@ local function updateBoidVel(game, boid)
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
     game:delta(otherBoid.pos, boid.pos, delta)
-    local distance = v2.normOf(delta)
+    local distance = v2.norm(delta)
     if distance < reach then
       local w = 1.0 - distance / reach
       local wdv = math.pow(w, 5.0)
-      v2.add(meanDelta, v2.mulScalar(delta, wdv), meanDelta)
-      v2.add(meanTrend, v2.mulScalar(otherBoid.vel, wdv), meanTrend)
+      v2.add(meanDelta, v2.mulNum(delta, wdv), meanDelta)
+      v2.add(meanTrend, v2.mulNum(otherBoid.vel, wdv), meanTrend)
       weight = weight + wdv
       -- Spread.
       local ws = math.pow(w, 10.0)
-      v2.add(meanSpread, v2.mulScalar(delta, -ws), meanSpread)
+      v2.add(meanSpread, v2.mulNum(delta, -ws), meanSpread)
       spreadWeight = spreadWeight + ws
     end
   end
   -- Mix together.
   if weight ~= 0.0 then
-    local vel = v2.mulScalar(boid.vel, 1.0, boid.vel)
+    local vel = v2.mulNum(boid.vel, 1.0, boid.vel)
     -- TODO Adjust impact by update time duration.
-    v2.add(vel, v2.mulScalar(meanDelta, 0.01 / weight, meanDelta), vel)
-    v2.add(vel, v2.mulScalar(meanTrend, 0.03 / weight, meanTrend), vel)
-    v2.add(vel, v2.mulScalar(meanSpread, 0.02 / spreadWeight, meanSpread), vel)
+    v2.add(vel, v2.mulNum(meanDelta, 0.01 / weight, meanDelta), vel)
+    v2.add(vel, v2.mulNum(meanTrend, 0.03 / weight, meanTrend), vel)
+    v2.add(vel, v2.mulNum(meanSpread, 0.02 / spreadWeight, meanSpread), vel)
     v2.normalize(vel, vel)
   end
 end
@@ -132,7 +132,7 @@ function Game:update(dt)
   local speed = self.speed
   for _, boid in ipairs(self.boids) do
     updateBoidVel(self, boid)
-    v2.add(boid.pos, v2.mulScalar(boid.vel, speed * dt), boid.pos)
+    v2.add(boid.pos, v2.mulNum(boid.vel, speed * dt), boid.pos)
     self:wrap(boid.pos)
   end
 end

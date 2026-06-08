@@ -14,10 +14,27 @@ function mod.add(a, b, target)
 end
 
 ---@param vec v2.Vec2
----@param scalar number
+---@param num number
+---@param target? v2.Vec2
 ---@return v2.Vec2
-function mod.addScalar(vec, scalar)
-  return { vec[1] + scalar, vec[2] + scalar }
+function mod.addNum(vec, num, target)
+  local result = target or {0.0, 0.0}
+  result[1] = vec[1] + num
+  result[2] = vec[2] + num
+  return result
+end
+
+---@param fun fun(): number
+---@param target? v2.Vec2
+---@return v2.Vec2
+function mod.init(fun, target)
+  if target then
+    target[1] = fun()
+    target[2] = fun()
+  else
+    target = {fun(), fun()}
+  end
+  return target
 end
 
 ---@param a v2.Vec2
@@ -33,25 +50,29 @@ end
 
 ---@param a v2.Vec2
 ---@param b v2.Vec2
+---@param target? v2.Vec2
 ---@return v2.Vec2
-function mod.mul(a, b)
-  return { a[1] * b[1], a[2] * b[2] }
+function mod.mul(a, b, target)
+  local result = target or {0.0, 0.0}
+  result[1] = a[1] * b[1]
+  result[2] = a[2] * b[2]
+  return result
 end
 
 ---@param vec v2.Vec2
----@param scalar number
+---@param num number
 ---@param target? v2.Vec2
 ---@return v2.Vec2
-function mod.mulScalar(vec, scalar, target)
+function mod.mulNum(vec, num, target)
   local result = target or {0.0, 0.0}
-  result[1] = vec[1] * scalar
-  result[2] = vec[2] * scalar
+  result[1] = vec[1] * num
+  result[2] = vec[2] * num
   return result
 end
 
 ---@param vec v2.Vec2
 ---@return number
-function mod.normOf(vec)
+function mod.norm(vec)
   return math.sqrt(vec[1] * vec[1] + vec[2] * vec[2])
 end
 
@@ -59,7 +80,7 @@ end
 ---@param target? v2.Vec2
 ---@return v2.Vec2
 function mod.normalize(vec, target)
-  return mod.mulScalar(vec, 1.0 / mod.normOf(vec), target)
+  return mod.mulNum(vec, 1.0 / mod.norm(vec), target)
 end
 
 ---@param target? v2.Vec2
