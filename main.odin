@@ -45,7 +45,6 @@ main :: proc() {
 	}
 }
 
-// Public by default is constant stress.
 game_init :: proc(boid_count: int) -> Game {
 	size := [2]f32{f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())}
 	size_max := max(size[0], size[1])
