@@ -63,12 +63,13 @@ end
 
 ---@param boidToward life.Boid
 ---@param boidFrom life.Boid
+---@param target? v.Vec2
 ---@return v.Vec2
-function Game:delta(boidToward, boidFrom)
+function Game:delta(boidToward, boidFrom, target)
   -- Gather locals.
   local size = self.size
   local half = v.mulScalar(size, 0.5)
-  local delta = v.add(boidToward, v.mulScalar(boidFrom, -1.0))
+  local delta = v.add(boidToward, v.mulScalar(boidFrom, -1.0), target)
   -- Wrap delta.
   if delta[1] < -half[1] then
     delta[1] = delta[1] + size[1]
@@ -94,36 +95,35 @@ end
 ---@param boid life.Boid
 local function updateBoidVel(game, boid)
   local reach = game.reach
-  local vel = boid.vel
-  local mean_delta = { 0.0, 0.0 }
-  local mean_trend = { 0.0, 0.0 }
-  local mean_spread = { 0.0, 0.0 }
+  local mean_delta = v.temp1 -- Alias temp1.
+  local mean_trend = v.temp2 -- Alias temp2.
+  local mean_spread = v.temp3 -- Alias temp3.
   local weight = 0.0
   local spreadWeight = 0.0
   for _, otherBoid in ipairs(game.boids) do
-    local delta = game:delta(otherBoid.pos, boid.pos)
+    local delta = game:delta(otherBoid.pos, boid.pos, v.temp4) -- Alias temp4.
     local distance = v.normOf(delta)
     if distance < reach then
       local w = 1.0 - distance / reach
       local wdv = math.pow(w, 5.0)
-      v.addInto(mean_delta, v.mulScalar(delta, wdv))
-      v.addInto(mean_trend, v.mulScalar(otherBoid.vel, wdv))
+      v.add(mean_delta, v.mulScalar(delta, wdv), mean_delta)
+      v.add(mean_trend, v.mulScalar(otherBoid.vel, wdv), mean_trend)
       weight = weight + wdv
       -- Spread.
       local ws = math.pow(w, 10.0)
-      v.addInto(mean_spread, v.mulScalar(delta, -ws))
+      v.add(mean_spread, v.mulScalar(delta, -ws), mean_spread)
       spreadWeight = spreadWeight + ws
     end
   end
   -- Mix together.
   if weight ~= 0.0 then
-    vel = v.mulScalar(boid.vel, 1.0)
+    local vel = v.mulScalar(boid.vel, 1.0, v.temp5) -- Alias temp5.
     -- TODO Adjust impact by update time duration.
-    v.mulScalarInto(mean_delta, 0.01 / weight)
-    v.mulScalarInto(mean_trend, 0.03 / weight)
-    v.mulScalarInto(mean_spread, 0.02 / spreadWeight)
-    v.addInto(v.addInto(v.addInto(vel, mean_spread), mean_trend), mean_delta)
-    boid.vel = v.normalize(vel)
+    v.mulScalar(mean_delta, 0.01 / weight, mean_delta)
+    v.mulScalar(mean_trend, 0.03 / weight, mean_trend)
+    v.mulScalar(mean_spread, 0.02 / spreadWeight, mean_spread)
+    v.add(v.add(v.add(vel, mean_spread, vel), mean_trend, vel), mean_delta, vel)
+    v.normalize(vel, boid.vel)
   end
 end
 
@@ -132,13 +132,13 @@ function Game:update(dt)
   local speed = self.speed
   for _, boid in ipairs(self.boids) do
     updateBoidVel(self, boid)
-    boid.pos = self:wrap(v.add(boid.pos, v.mulScalar(boid.vel, speed * dt)))
+    v.add(boid.pos, v.mulScalar(boid.vel, speed * dt, v.temp5), boid.pos)
+    self:wrap(boid.pos)
   end
 end
 
----@param pos v.Vec2
+---@param pos v.Vec2 Modified in place.
 ---@return v.Vec2
 function Game:wrap(pos)
-  pos = v.add(pos, self.size)
-  return { math.fmod(pos[1], self.size[1]), math.fmod(pos[2], self.size[2]) }
+  return v.fmod(v.add(pos, self.size, pos), self.size, pos)
 end

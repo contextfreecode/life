@@ -2,20 +2,30 @@ local mod = {}
 
 ---@alias v.Vec2 [number, number]
 
----@param a v.Vec2
----@param b v.Vec2
----@return v.Vec2
-function mod.add(a, b)
-  return { a[1] + b[1], a[2] + b[2] }
-end
+---@type v.Vec2
+mod.temp1 = {0.0, 0.0}
+
+---@type v.Vec2
+mod.temp2 = {0.0, 0.0}
+
+---@type v.Vec2
+mod.temp3 = {0.0, 0.0}
+
+---@type v.Vec2
+mod.temp4 = {0.0, 0.0}
+
+---@type v.Vec2
+mod.temp5 = {0.0, 0.0}
 
 ---@param a v.Vec2
 ---@param b v.Vec2
+---@param target? v.Vec2
 ---@return v.Vec2
-function mod.addInto(a, b)
-  a[1] = a[1] + b[1]
-  a[2] = a[2] + b[2]
-  return a
+function mod.add(a, b, target)
+  local result = target or {0.0, 0.0}
+  result[1] = a[1] + b[1]
+  result[2] = a[2] + b[2]
+  return result
 end
 
 ---@param vec v.Vec2
@@ -27,6 +37,17 @@ end
 
 ---@param a v.Vec2
 ---@param b v.Vec2
+---@param target? v.Vec2
+---@return v.Vec2
+function mod.fmod(a, b, target)
+  local result = target or {0.0, 0.0}
+  result[1] = math.fmod(a[1], b[1])
+  result[2] = math.fmod(a[2], b[2])
+  return result
+end
+
+---@param a v.Vec2
+---@param b v.Vec2
 ---@return v.Vec2
 function mod.mul(a, b)
   return { a[1] * b[1], a[2] * b[2] }
@@ -34,18 +55,13 @@ end
 
 ---@param vec v.Vec2
 ---@param scalar number
+---@param target? v.Vec2
 ---@return v.Vec2
-function mod.mulScalar(vec, scalar)
-  return { vec[1] * scalar, vec[2] * scalar }
-end
-
----@param vec v.Vec2
----@param scalar number
----@return v.Vec2
-function mod.mulScalarInto(vec, scalar)
-  vec[1] = vec[1] * scalar
-  vec[2] = vec[2] * scalar
-  return vec
+function mod.mulScalar(vec, scalar, target)
+  local result = target or {0.0, 0.0}
+  result[1] = vec[1] * scalar
+  result[2] = vec[2] * scalar
+  return result
 end
 
 ---@param vec v.Vec2
@@ -55,9 +71,22 @@ function mod.normOf(vec)
 end
 
 ---@param vec v.Vec2
+---@param target? v.Vec2
 ---@return v.Vec2
-function mod.normalize(vec)
-  return mod.mulScalar(vec, 1.0 / mod.normOf(vec))
+function mod.normalize(vec, target)
+  return mod.mulScalar(vec, 1.0 / mod.normOf(vec), target)
+end
+
+---@param target? v.Vec2
+---@return v.Vec2
+function mod.zero(target)
+  if target then
+    target[1] = 0.0
+    target[2] = 0.0
+  else
+    target = {0.0, 0.0}
+  end
+  return target
 end
 
 return mod
