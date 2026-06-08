@@ -2,6 +2,14 @@ local mod = {}
 
 ---@alias v2.Vec2 [number, number]
 
+-- TODO Alternate to consider in some cases.
+-- local ffi = require("ffi")
+-- ffi.cdef[[
+--   typedef struct {
+--     double x, y;
+--   } v2_Vec;
+-- ]]
+
 ---@param a v2.Vec2
 ---@param b v2.Vec2
 ---@param target? v2.Vec2
