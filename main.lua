@@ -1,3 +1,4 @@
+-- jit.off()
 local v2 = require("v2")
 
 ---@class life.Game
@@ -21,6 +22,7 @@ function love.load()
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
   -- love.event.quit()
+  -- game = Game.new(130) -- For jit.off() on rpi4.
   game = Game.new(450) -- Was more like 550 with separate x & y.
 end
 
