@@ -26,16 +26,21 @@ function love.load()
   game = Game.new(0) -- Was maybe 25% more boids with separate x & y.
 end
 
+local fps = 0.0
+
 function love.draw()
   game:draw()
   love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
   love.graphics.print("Boids: " .. #game.boids, 10, 50)
+  local score = math.pow(#game.boids, 2) / 1000
+  love.graphics.print(string.format("Score: %.1f", score), 10, 90)
 end
 
 ---@param dt number
 function love.update(dt)
   game:update(dt)
-  if love.timer.getFPS() > 40 then
+  fps = 0.9 * fps + 0.1 / dt
+  if fps > 40 then
     game:addBoid()
   end
 end

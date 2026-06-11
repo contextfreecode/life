@@ -35,7 +35,7 @@ async fn main() {
         clear_background(Color::from_rgba(0x2b, 0x2b, 0x38, 0xff));
         game.update(get_frame_time());
         game.draw(color);
-        fps = 0.9 * fps + 0.1 * (1.0 / get_frame_time());
+        fps = 0.9 * fps + 0.1 / get_frame_time();
         if fps > 40.0 {
             game.add_boid();
         }
@@ -43,6 +43,9 @@ async fn main() {
         draw_text(&label, 10.0, 40.0, 50.0, color);
         let label = format!("Boids: {}", game.boids.len());
         draw_text(&label, 10.0, 80.0, 50.0, color);
+        let score = game.boids.len().pow(2) as f32 / 1000.0;
+        let label = format!("Score: {:.1}", score);
+        draw_text(&label, 10.0, 120.0, 50.0, color);
         next_frame().await;
         // break
     }

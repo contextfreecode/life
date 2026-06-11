@@ -28,6 +28,7 @@ main :: proc() {
 	defer rl.CloseWindow()
 	game := game_init(0)
 	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
+	fps := 0.0
 	// Loop.
 	for !rl.WindowShouldClose() {
 		// Prep.
@@ -36,6 +37,7 @@ main :: proc() {
 		defer rl.EndDrawing()
 		// Update.
 		game_update(&game, rl.GetFrameTime())
+		fps = 0.9 * fps + 0.1 / f64(rl.GetFrameTime())
 		if rl.GetFPS() > 40 {
 			game_add_boid(&game)
 		}
@@ -43,7 +45,10 @@ main :: proc() {
 		rl.ClearBackground(rl.Color{0x2b, 0x2b, 0x38, 0xff})
 		game_draw(&game, color)
 		rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 40, color)
-		rl.DrawText(fmt.ctprint("Boids: ", len(game.boids)), 10, 50, 40, color)
+		count := len(game.boids)
+		rl.DrawText(fmt.ctprint("Boids: ", count), 10, 50, 40, color)
+		score := f64(count * count) / 1000
+		rl.DrawText(fmt.ctprintf("Score: %.1f", score), 10, 90, 40, color)
 		// break
 	}
 }

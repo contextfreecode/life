@@ -13,6 +13,7 @@ def main() -> None:
     pg.init()
     screen = pg.display.set_mode((0, 0), pg.FULLSCREEN, vsync=1)
     clock = pg.time.Clock()
+    fps = 0.0
     color = (0xE8, 0xE8, 0xE8)
     font = pg.font.Font(None, 50)
     game = Game(0)
@@ -21,15 +22,22 @@ def main() -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
-        game.update(clock.tick() * 1e-3)
+        dt = clock.tick() * 1e-3
+        game.update(dt)
         screen.fill((0x2B, 0x2B, 0x38))
         game.draw(screen, color)
-        if clock.get_fps() > 40:
+        fps = 0.9 * fps + 0.1 / dt
+        if fps > 40:
             game.add_boid()
+        # Display stats.
         label = font.render(f"FPS: {clock.get_fps():.0f}", True, color)
         screen.blit(label, (10, 10))
         label = font.render(f"Boids: {len(game.boids)}", True, color)
         screen.blit(label, (10, 50))
+        score = len(game.boids) ** 2 / 1000
+        label = font.render(f"Score: {score:.1f}", True, color)
+        screen.blit(label, (10, 90))
+        # Flip.
         pg.display.flip()
         # break
     pg.quit()
