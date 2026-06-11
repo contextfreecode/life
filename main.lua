@@ -1,4 +1,4 @@
--- jit.off()
+-- if jit then jit.off() end
 local v2 = require("v2")
 
 ---@class life.Game
@@ -21,19 +21,23 @@ function love.load()
   love.window.setTitle("Boids")
   love.graphics.setBackgroundColor({ 0.17, 0.17, 0.22 })
   love.graphics.setColor({ 0.91, 0.91, 0.91 })
+  love.graphics.setFont(love.graphics.newFont(40))
   -- love.event.quit()
-  -- game = Game.new(130) -- For jit.off() on rpi4.
-  game = Game.new(450) -- Was more like 550 with separate x & y.
+  game = Game.new(0) -- Was maybe 25% more boids with separate x & y.
 end
 
 function love.draw()
   game:draw()
-  love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), 10, 10)
+  love.graphics.print("FPS: " .. love.timer.getFPS(), 10, 10)
+  love.graphics.print("Boids: " .. #game.boids, 10, 50)
 end
 
 ---@param dt number
 function love.update(dt)
   game:update(dt)
+  if love.timer.getFPS() > 40 then
+    game:addBoid()
+  end
 end
 
 ---@param boidCount integer

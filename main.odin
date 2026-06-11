@@ -26,8 +26,7 @@ main :: proc() {
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
 	defer rl.CloseWindow()
-	game := game_init(650)
-	// game := game_init(1150) // For -o:speed mode.
+	game := game_init(0)
 	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
 	// Loop.
 	for !rl.WindowShouldClose() {
@@ -37,10 +36,14 @@ main :: proc() {
 		defer rl.EndDrawing()
 		// Update.
 		game_update(&game, rl.GetFrameTime())
+		if rl.GetFPS() > 40 {
+			game_add_boid(&game)
+		}
 		// Draw.
 		rl.ClearBackground(rl.Color{0x2b, 0x2b, 0x38, 0xff})
 		game_draw(&game, color)
-		rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 20, color)
+		rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 40, color)
+		rl.DrawText(fmt.ctprint("Boids: ", len(game.boids)), 10, 50, 40, color)
 		// break
 	}
 }
@@ -65,7 +68,7 @@ game_add_boid :: proc(game: ^Game) {
 	append(&game.boids, Boid{pos = pos, vel = vel})
 }
 
-game_delta :: proc(game: Game, from: [2]f32, toward: [2]f32) -> [2]f32 {
+game_delta :: proc(game: Game, toward: [2]f32, from: [2]f32) -> [2]f32 {
 	size := game.size
 	half := size / 2
 	delta := toward - from
@@ -107,7 +110,7 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 	weight: f32
 	spread_weight: f32
 	for other_boid in game.boids {
-		delta := game_delta(game, boid.pos, other_boid.pos)
+		delta := game_delta(game, other_boid.pos, boid.pos)
 		distance := linalg.length(delta)
 		if distance < reach {
 			w := 1 - distance / reach
@@ -123,13 +126,12 @@ game_update_boid_vel :: proc(game: Game, boid: ^Boid) {
 	}
 	// Mix together.
 	if weight != 0 {
-		mean_delta /= weight
-		mean_trend /= weight
-		mean_spread /= spread_weight
+		vel := 1.0 * boid.vel
 		// TODO Adjust impact by update time duration.
-		boid.vel = linalg.normalize(
-			boid.vel * 1 + mean_delta * 0.01 + mean_trend * 0.03 + mean_spread * 0.02,
-		)
+		vel += 0.01 * mean_delta / weight
+		vel += 0.03 * mean_trend / weight
+		vel += 0.02 * mean_spread / spread_weight
+		boid.vel = linalg.normalize(vel)
 	}
 }
 

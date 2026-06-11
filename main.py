@@ -14,8 +14,8 @@ def main() -> None:
     screen = pg.display.set_mode((0, 0), pg.FULLSCREEN, vsync=1)
     clock = pg.time.Clock()
     color = (0xE8, 0xE8, 0xE8)
-    font = pg.font.Font(None, 20)
-    game = Game(70)
+    font = pg.font.Font(None, 50)
+    game = Game(0)
     running = True
     while running:
         for event in pg.event.get():
@@ -24,8 +24,12 @@ def main() -> None:
         game.update(clock.tick() * 1e-3)
         screen.fill((0x2B, 0x2B, 0x38))
         game.draw(screen, color)
-        fps = font.render(f"FPS: {clock.get_fps():.0f}", True, color)
-        screen.blit(fps, (10, 10))
+        if clock.get_fps() > 40:
+            game.add_boid()
+        label = font.render(f"FPS: {clock.get_fps():.0f}", True, color)
+        screen.blit(label, (10, 10))
+        label = font.render(f"Boids: {len(game.boids)}", True, color)
+        screen.blit(label, (10, 50))
         pg.display.flip()
         # break
     pg.quit()
@@ -60,7 +64,7 @@ class Game:
         vel = vel.normalize()
         self.boids.append(Boid(pos=pos, vel=vel))
 
-    def delta(self, *, origin: pg.Vector2, toward: pg.Vector2) -> pg.Vector2:
+    def delta(self, *, toward: pg.Vector2, origin: pg.Vector2) -> pg.Vector2:
         size = self.size
         half = size.elementwise() * 0.5
         delta = toward - origin
@@ -94,7 +98,7 @@ class Game:
         weight = 0.0
         spread_weight = 0.0
         for other_boid in self.boids:
-            delta = self.delta(origin=boid.pos, toward=other_boid.pos)
+            delta = self.delta(toward=other_boid.pos, origin=boid.pos)
             distance = delta.length()
             if distance < reach:
                 delta_elementwise = delta.elementwise()
