@@ -1,4 +1,3 @@
-// odin run . -extra-linker-flags="-lGL -ldrm -lEGL -lgbm"
 package main
 
 import "core:c"
