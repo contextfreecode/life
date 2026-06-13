@@ -36,9 +36,10 @@ update :: proc() {
 	rl.BeginDrawing()
 	defer rl.EndDrawing()
 	// Update.
-	game_update(&game, rl.GetFrameTime())
-	fps = 0.9 * fps + 0.1 / f64(rl.GetFrameTime())
-	if rl.GetFPS() > 40 {
+	dt := rl.GetFrameTime()
+	game_update(&game, dt)
+	fps = 0.9 * fps + 0.1 / f64(max(dt, 1e-3))
+	if fps > 40 {
 		game_add_boid(&game)
 	}
 	// Draw.
