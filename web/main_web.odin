@@ -4,6 +4,7 @@ import game ".."
 import "base:runtime"
 import "core:c"
 import "core:mem"
+import rl "vendor:raylib"
 
 @(private = "file")
 web_context: runtime.Context
@@ -18,6 +19,9 @@ main_start :: proc "c" () {
 	runtime.init_global_temporary_allocator(1 * mem.Megabyte)
 	context.logger = create_emscripten_logger()
 	web_context = context
+	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_UNDECORATED})
+	rl.SetTraceLogLevel(.WARNING)
+	rl.InitWindow(1920, 1080, "Boids")
 	game.init()
 }
 

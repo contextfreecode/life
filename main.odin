@@ -23,9 +23,6 @@ fps := 0.0
 game: Game
 
 init :: proc() {
-	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_UNDECORATED})
-	rl.SetTraceLogLevel(.WARNING)
-	rl.InitWindow(1920, 1080, "Boids")
 	game = game_init(0)
 }
 
