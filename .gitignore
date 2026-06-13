@@ -1,5 +1,4 @@
-/emscripten.*
+/build/native
 /life
 *.love
-/odin.js
 /target
