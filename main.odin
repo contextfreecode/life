@@ -25,7 +25,7 @@ game: Game
 init :: proc() {
 	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_UNDECORATED})
 	rl.SetTraceLogLevel(.WARNING)
-	rl.InitWindow(0, 0, "Boids")
+	rl.InitWindow(1920, 1080, "Boids")
 	game = game_init(0)
 }
 
@@ -33,7 +33,7 @@ shutdown :: proc() {
 	rl.CloseWindow()
 }
 
-update :: proc() -> bool {
+update :: proc() {
 	// Prep.
 	defer free_all(context.temp_allocator)
 	rl.BeginDrawing()
@@ -53,8 +53,6 @@ update :: proc() -> bool {
 	rl.DrawText(fmt.ctprint("Boids: ", count), 10, 50, 40, color)
 	score := f64(count * count) / 1000
 	rl.DrawText(fmt.ctprintf("Score: %.1f", score), 10, 90, 40, color)
-	// Check status.
-	return rl.WindowShouldClose()
 }
 
 game_init :: proc(boid_count: int) -> Game {

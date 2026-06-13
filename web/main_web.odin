@@ -24,7 +24,8 @@ main_start :: proc "c" () {
 @(export)
 main_update :: proc "c" () -> bool {
 	context = web_context
-	return game.update()
+	game.update()
+	return true
 }
 
 @(export)

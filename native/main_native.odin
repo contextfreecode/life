@@ -1,14 +1,12 @@
 package native
 
 import game ".."
+import rl "vendor:raylib"
 
 main :: proc() {
 	game.init()
 	defer game.shutdown()
-	for {
-		done := game.update()
-		if done {
-			break
-		}
+	for !rl.WindowShouldClose() {
+		game.update()
 	}
 }
