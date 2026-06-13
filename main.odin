@@ -1,4 +1,4 @@
-package main
+package game
 
 import "core:c"
 import "core:fmt"
@@ -19,37 +19,42 @@ Boid :: struct {
 	vel: [2]f32,
 }
 
-main :: proc() {
-	// Init.
+fps := 0.0
+game: Game
+
+init :: proc() {
 	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_UNDECORATED})
 	rl.SetTraceLogLevel(.WARNING)
 	rl.InitWindow(0, 0, "Boids")
-	defer rl.CloseWindow()
-	game := game_init(0)
-	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
-	fps := 0.0
-	// Loop.
-	for !rl.WindowShouldClose() {
-		// Prep.
-		defer free_all(context.temp_allocator)
-		rl.BeginDrawing()
-		defer rl.EndDrawing()
-		// Update.
-		game_update(&game, rl.GetFrameTime())
-		fps = 0.9 * fps + 0.1 / f64(rl.GetFrameTime())
-		if rl.GetFPS() > 40 {
-			game_add_boid(&game)
-		}
-		// Draw.
-		rl.ClearBackground(rl.Color{0x2b, 0x2b, 0x38, 0xff})
-		game_draw(&game, color)
-		rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 40, color)
-		count := len(game.boids)
-		rl.DrawText(fmt.ctprint("Boids: ", count), 10, 50, 40, color)
-		score := f64(count * count) / 1000
-		rl.DrawText(fmt.ctprintf("Score: %.1f", score), 10, 90, 40, color)
-		// break
+	game = game_init(0)
+}
+
+shutdown :: proc() {
+	rl.CloseWindow()
+}
+
+update :: proc() -> bool {
+	// Prep.
+	defer free_all(context.temp_allocator)
+	rl.BeginDrawing()
+	defer rl.EndDrawing()
+	// Update.
+	game_update(&game, rl.GetFrameTime())
+	fps = 0.9 * fps + 0.1 / f64(rl.GetFrameTime())
+	if rl.GetFPS() > 40 {
+		game_add_boid(&game)
 	}
+	// Draw.
+	color := rl.Color{0xe8, 0xe8, 0xe8, 0xff}
+	rl.ClearBackground(rl.Color{0x2b, 0x2b, 0x38, 0xff})
+	game_draw(&game, color)
+	rl.DrawText(fmt.ctprint("FPS: ", rl.GetFPS()), 10, 10, 40, color)
+	count := len(game.boids)
+	rl.DrawText(fmt.ctprint("Boids: ", count), 10, 50, 40, color)
+	score := f64(count * count) / 1000
+	rl.DrawText(fmt.ctprintf("Score: %.1f", score), 10, 90, 40, color)
+	// Check status.
+	return rl.WindowShouldClose()
 }
 
 game_init :: proc(boid_count: int) -> Game {

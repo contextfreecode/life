@@ -1,3 +1,5 @@
+/emscripten.*
 /life
 *.love
+/odin.js
 /target
